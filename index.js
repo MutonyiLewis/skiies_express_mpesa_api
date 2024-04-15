@@ -16,6 +16,12 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`)
 });
 
+app.use(cors({
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
 app.get("/", (req,res) => {
     res.send(`<h1>Hello this MutonyiLewis</h1>`);
     const timestamp = moment().format("YYYYMMDDHHmmss");
@@ -58,7 +64,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //Mpesa STK push route
-app.get("/stkpush", (req, res) => {
+app.post("/stkpush", (req, res) => {
+
+    let phoneNumber = req.body.phoneNumber;
+
+    // Modify phone number if it starts with "0"
+    if (phoneNumber.startsWith("0")) {
+        phoneNumber = "254" + phoneNumber.substring(1); // Replace "0" with "254"
+    }
+    let total = Math.round(req.body.total)
+    
     generateToken()
       .then((accessToken) => {
         const url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
@@ -82,11 +97,11 @@ app.get("/stkpush", (req, res) => {
                     "Password": password,    
                     "Timestamp":timestamp,    
                     "TransactionType": "CustomerPayBillOnline",    
-                    "Amount": "1",    
-                    "PartyA":"254708585994",    
+                    "Amount": total,    
+                    "PartyA":phoneNumber,    
                     "PartyB":"174379",    
-                    "PhoneNumber":"254708585994",    
-                    "CallBackURL": "https://mydomain.com/path",    
+                    "PhoneNumber":phoneNumber,    
+                    "CallBackURL": "https://tulivu.netlify.app/",    
                     "AccountReference":"Test",    
                     "TransactionDesc":"Test"
                  },
@@ -149,7 +164,7 @@ app.post("/confirmation", (req, res) => {
 app.get("/requestfunds", (req, res) => {
     generateToken()
       .then((accessToken) => {
-        const securityCredential = "Ngs0nG0LVvqbWvfaOPL6moTzOKhJ7N0WKcTL5NPGEcjYdKAIpeKkryFPnuLpcH2Wa6LCuf284TI+c1+yknfswPpapaRObU9dk3i1HfWkc3Bh+cfEGX6D78rUqB/2Rvxo8eD3plt8nykPeEP1HS3N8b+03agmT2vKd1j0w9hFPeZr1YsIv+gF+F78zHmFSAZChkiI96Hy5TrLEKC6Cyot4cD75cP+hZDk3BaUYA1xPcItJHVJCDERy2SCVWLqaMIikRftU0I2fGPEJzLp3dM7md7Cw3hlJQ0Bk4WiNIIxQPmNq7P9rdMw7LdGs1KWGzdi4Akp1wDlYTh7odQMzbTgZQ=="
+        const securityCredential = "OddYB6cCICnLS95E1NAQfsK3Dy7A"
         const url = "https://sandbox.safaricom.co.ke/mpesa/b2c/v3/paymentrequest",
           auth = "Bearer " + accessToken
 
@@ -162,11 +177,11 @@ app.get("/requestfunds", (req, res) => {
             },
 
             json: {    
-                "OriginatorConversationID": "f8d188ea6-dc5f-4127-aaae-981ccf4d9b4d",
+                "OriginatorConversationID": "8139e403-a784-41fa-ad18-dcad2b3f0170",
                 "InitiatorName": "testapi",
                 "SecurityCredential": securityCredential,
                 "CommandID":"BusinessPayment",
-                "Amount":"100",
+                "Amount":"10",
                 "PartyA":"600996",
                 "PartyB":"254708585994",
                 "Remarks":"Testing remarks",
